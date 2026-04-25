@@ -975,7 +975,7 @@ document.querySelectorAll('.overlay').forEach(o => {
 });
 
 loadBalises();
-document.getElementById('searchInput').value = '';
+setTimeout(() => { document.getElementById('searchInput').value = ''; renderGrid(); }, 500);
 </script>
 </body>
 </html>
