@@ -1024,16 +1024,6 @@ async function saveAnnonce() {
   } catch(e) { showToast('Erreur annonce'); }
 }
 
-function toggleAnnonceVisible() {
-  localAnnonceVisible = !localAnnonceVisible;
-  const bar = document.getElementById('annonceBar');
-  const visibleBtn = document.getElementById('annonceVisibleBtn');
-  bar.style.display = localAnnonceVisible ? 'flex' : 'none';
-  visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
-  visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
-  visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
-}
-
 async function loadAnnonce() {
   try {
     const rows = await api('annonce?id=eq.1');
@@ -1048,7 +1038,7 @@ async function loadAnnonce() {
     visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
     visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
     visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
-    bar.style.display = localAnnonceVisible ? 'flex' : 'none';
+    bar.style.display = (contenu && localAnnonceVisible) ? 'flex' : 'none';
   } catch(e) {}
 }
 async function openAnnonce() {
