@@ -1043,7 +1043,7 @@ async function loadAnnonce() {
     visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
     visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
     visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
-    bar.style.display = (contenu && localAnnonceVisible) || !localAnnonceVisible ? 'flex' : 'none';
+    bar.style.display = localAnnonceVisible ? 'flex' : 'none';
   } catch(e) {}
 }
 async function openAnnonce() {
