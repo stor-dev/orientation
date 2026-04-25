@@ -264,8 +264,7 @@
 <header>
   <h1>🌲 Course <span>d'orientation</span></h1>
   <div class="header-right">
-    <button class="btn-header" id="btnGuest" onclick="openGuestLogin()">Invité</button>
-    <button class="btn-header" id="btnAdmin" onclick="toggleAdminLogin()">Admin</button>
+    <button class="btn-header" id="btnLogin" onclick="openLoginModal()">Se connecter</button>
   </div>
 </header>
 
@@ -297,22 +296,21 @@
   <button class="fab fab-add" id="fabAdd" onclick="openAddModal()">+</button>
 </div>
 
-<!-- MODAL LOGIN ADMIN -->
-<div class="overlay" id="overlayAdminLogin">
+<!-- MODAL LOGIN -->
+<div class="overlay" id="overlayLogin">
   <div class="modal">
-    <div class="modal-header"><h2>Connexion Admin</h2><button class="modal-close" onclick="closeOverlay('overlayAdminLogin')">×</button></div>
+    <div class="modal-header"><h2>Se connecter</h2><button class="modal-close" onclick="closeOverlay('overlayLogin')">×</button></div>
     <div class="modal-body">
       <div class="login-form">
-        <input type="password" id="adminPassInput" placeholder="Mot de passe admin" onkeydown="if(event.key==='Enter')checkAdmin()">
-        <button class="btn-primary" onclick="checkAdmin()">Se connecter</button>
-        <p id="adminError" style="color:var(--broken);font-size:0.8rem;text-align:center;display:none">Mot de passe incorrect</p>
+        <input type="text" id="loginNameInput" placeholder="Identifiant" onkeydown="if(event.key==='Enter')checkLogin()">
+        <input type="password" id="loginPassInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkLogin()">
+        <button class="btn-primary" onclick="checkLogin()">Se connecter</button>
+        <p id="loginError" style="color:var(--broken);font-size:0.8rem;text-align:center;display:none">Identifiant ou mot de passe incorrect</p>
       </div>
 
       <!-- Section invités : visible uniquement après connexion admin -->
       <div class="admin-guest-section" id="adminGuestSection">
         <p class="section-title">👥 Gestion des invités</p>
-
-        <!-- Formulaire ajout -->
         <div class="add-guest-form">
           <p style="font-size:0.78rem;font-weight:700;color:var(--forest);margin-bottom:10px">Nouvel invité</p>
           <div class="form-row">
@@ -328,25 +326,7 @@
           </div>
           <button class="btn-primary" onclick="addGuest()" style="font-size:0.82rem;padding:9px 16px">➕ Ajouter l'invité</button>
         </div>
-
-        <!-- Liste des invités -->
         <div id="guestList"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL LOGIN INVITÉ -->
-<div class="overlay" id="overlayGuestLogin">
-  <div class="modal">
-    <div class="modal-header"><h2>Connexion Invité</h2><button class="modal-close" onclick="closeOverlay('overlayGuestLogin')">×</button></div>
-    <div class="modal-body">
-      <p style="font-size:0.85rem;color:#666;margin-bottom:14px">Entrez votre identifiant et code d'accès.</p>
-      <div class="login-form">
-        <input type="text" id="guestNameInput" placeholder="Votre identifiant (ex: Jean)" onkeydown="if(event.key==='Enter')checkGuest()">
-        <input type="password" id="guestPassInput" placeholder="Code d'accès" onkeydown="if(event.key==='Enter')checkGuest()">
-        <button class="btn-primary" onclick="checkGuest()">Accéder</button>
-        <p id="guestError" style="color:var(--broken);font-size:0.8rem;text-align:center;display:none">Identifiant ou code incorrect</p>
       </div>
     </div>
   </div>
@@ -586,73 +566,53 @@ function handlePermToggle(guestId, permKey, value) {
 }
 
 // ===== AUTH =====
-function toggleAdminLogin() {
-  if (isAdmin) {
-    isAdmin = false;
-    document.getElementById('btnAdmin').classList.remove('active');
-    document.getElementById('btnAdmin').textContent = 'Admin';
+function openLoginModal() {
+  if (isAdmin || isGuest) {
+    // Déconnexion
+    isAdmin = false; isGuest = false;
+    guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
+    document.getElementById('btnLogin').classList.remove('active');
+    document.getElementById('btnLogin').textContent = 'Se connecter';
     document.getElementById('fabAdd').classList.remove('visible');
-    document.getElementById('adminGuestSection').style.display = 'none';
     renderGrid();
     showToast('Déconnecté');
     return;
   }
   document.getElementById('adminGuestSection').style.display = 'none';
-  document.getElementById('adminError').style.display = 'none';
-  document.getElementById('adminPassInput').value = '';
-  openOverlay('overlayAdminLogin');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginNameInput').value = '';
+  document.getElementById('loginPassInput').value = '';
+  openOverlay('overlayLogin');
 }
 
-function checkAdmin() {
-  const v = document.getElementById('adminPassInput').value;
-  if (v === ADMIN_PASSWORD) {
+async function checkLogin() {
+  const nom = document.getElementById('loginNameInput').value.trim();
+  const pass = document.getElementById('loginPassInput').value.trim();
+  if (!nom || !pass) { document.getElementById('loginError').style.display = 'block'; return; }
+
+  // Compte admin fixe (inaltérable)
+  if (nom === 'Admin' && pass === ADMIN_PASSWORD) {
     isAdmin = true; isGuest = false;
     guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
-    document.getElementById('adminPassInput').value = '';
-    document.getElementById('adminError').style.display = 'none';
-    document.getElementById('btnAdmin').classList.add('active');
-    document.getElementById('btnAdmin').textContent = '⚙️ Admin';
-    document.getElementById('btnGuest').classList.remove('active');
-    document.getElementById('btnGuest').textContent = 'Invité';
+    document.getElementById('loginNameInput').value = '';
+    document.getElementById('loginPassInput').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('btnLogin').classList.add('active');
+    document.getElementById('btnLogin').textContent = '⚙️ Admin';
     document.getElementById('fabAdd').classList.add('visible');
     document.getElementById('adminGuestSection').style.display = 'block';
     loadGuests();
     renderGrid();
     showToast('Connecté en admin !');
-    // Ne pas fermer la modal : l'admin peut gérer les invités depuis là
-  } else {
-    document.getElementById('adminError').style.display = 'block';
-  }
-}
-
-function openGuestLogin() {
-  if (isGuest) {
-    isGuest = false;
-    guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
-    document.getElementById('btnGuest').classList.remove('active');
-    document.getElementById('btnGuest').textContent = 'Invité';
-    document.getElementById('fabAdd').classList.remove('visible');
-    renderGrid();
-    showToast('Déconnecté');
     return;
   }
-  document.getElementById('guestNameInput').value = '';
-  document.getElementById('guestPassInput').value = '';
-  document.getElementById('guestError').style.display = 'none';
-  openOverlay('overlayGuestLogin');
-}
 
-async function checkGuest() {
-  const nom = document.getElementById('guestNameInput').value.trim();
-  const code = document.getElementById('guestPassInput').value.trim();
-  if (!nom || !code) { document.getElementById('guestError').style.display = 'block'; return; }
-
+  // Compte invité via Supabase
   try {
-    const guests = await api('invites?nom=eq.' + encodeURIComponent(nom) + '&code=eq.' + encodeURIComponent(code));
+    const guests = await api('invites?nom=eq.' + encodeURIComponent(nom) + '&code=eq.' + encodeURIComponent(pass));
     if (guests && guests.length > 0) {
       const g = guests[0];
       isGuest = true; isAdmin = false;
-      // Charger les permissions de ce profil
       guestPerms = {
         poincons:         !!g.perm_poincons,
         photos:           !!g.perm_photos,
@@ -660,23 +620,18 @@ async function checkGuest() {
         modifier_credits: !!g.perm_modifier_credits,
         confirmer_etat:   !!g.perm_confirmer_etat,
       };
-      closeOverlay('overlayGuestLogin');
-      document.getElementById('guestNameInput').value = '';
-      document.getElementById('guestPassInput').value = '';
-      document.getElementById('guestError').style.display = 'none';
-      document.getElementById('btnGuest').classList.add('active');
-      document.getElementById('btnGuest').textContent = '👤 ' + g.nom;
-      document.getElementById('btnAdmin').classList.remove('active');
-      // Afficher le FAB si l'invité peut modifier les balises
-      if (guestPerms.modifier_balises) {
-        document.getElementById('fabAdd').classList.add('visible');
-      }
+      closeOverlay('overlayLogin');
+      document.getElementById('loginNameInput').value = '';
+      document.getElementById('loginPassInput').value = '';
+      document.getElementById('btnLogin').classList.add('active');
+      document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
+      if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
       renderGrid();
       showToast('Bienvenue ' + g.nom + ' !');
     } else {
-      document.getElementById('guestError').style.display = 'block';
+      document.getElementById('loginError').style.display = 'block';
     }
-  } catch(e) { document.getElementById('guestError').style.display = 'block'; }
+  } catch(e) { document.getElementById('loginError').style.display = 'block'; }
 }
 
 // ===== GRID =====
