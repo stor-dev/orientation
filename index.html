@@ -19,6 +19,7 @@
     --broken: #f44336;
     --warn: #ff9800;
     --unknown: #9e9e9e;
+    --inexistante: #7b1fa2;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -80,6 +81,7 @@
   .card.broken { border-color: var(--broken); }
   .card.inaccessible { border-color: var(--warn); }
   .card.unknown { border-color: var(--unknown); }
+  .card.inexistante { border-color: var(--inexistante); }
 
   .card-code { font-size: 1.6rem; font-weight: 800; color: var(--forest); line-height: 1; }
   .card-name { font-size: 0.8rem; color: #666; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -91,6 +93,7 @@
   .dot.broken { background: var(--broken); }
   .dot.inaccessible { background: var(--warn); }
   .dot.unknown { background: var(--unknown); }
+  .dot.inexistante { background: var(--inexistante); }
 
   .card-poincon-mini { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 36px; }
   .pip-mini { width: 10px; height: 10px; border-radius: 50%; background: #ddd; border: 1.5px solid #bbb; }
@@ -272,6 +275,7 @@
   <div class="stat"><div class="stat-num ok" id="statOk">–</div><div class="stat-label">✅ OK</div></div>
   <div class="stat"><div class="stat-num broken" id="statBroken">–</div><div class="stat-label">🔴 Cassées</div></div>
   <div class="stat"><div class="stat-num warn" id="statWarn">–</div><div class="stat-label">⚠️ Inacc.</div></div>
+  <div class="stat"><div class="stat-num" id="statNone" style="color:var(--inexistante)">–</div><div class="stat-label">🚫 N/E</div></div>
   <div class="stat"><div class="stat-num unk" id="statUnk">–</div><div class="stat-label">❓ N/V</div></div>
 </div>
 
@@ -284,6 +288,7 @@
   <button class="filter-btn" onclick="setFilter('operationnelle', this)">✅ Opérationnelles</button>
   <button class="filter-btn" onclick="setFilter('cassee', this)">🔴 Cassées</button>
   <button class="filter-btn" onclick="setFilter('inaccessible', this)">⚠️ Inaccessibles</button>
+  <button class="filter-btn" onclick="setFilter('inexistante', this)">🚫 Non existantes</button>
   <button class="filter-btn" onclick="setFilter('unknown', this)">❓ Non vérifiées</button>
 </div>
 
@@ -348,6 +353,7 @@
           <div><input type="radio" name="editStatut" id="sOk" value="operationnelle" class="status-radio"><label for="sOk" class="status-label"><span class="dot ok"></span>Opérationnelle</label></div>
           <div><input type="radio" name="editStatut" id="sBroken" value="cassee" class="status-radio"><label for="sBroken" class="status-label"><span class="dot broken"></span>Cassée</label></div>
           <div><input type="radio" name="editStatut" id="sWarn" value="inaccessible" class="status-radio"><label for="sWarn" class="status-label"><span class="dot inaccessible"></span>Inaccessible</label></div>
+          <div><input type="radio" name="editStatut" id="sNone" value="inexistante" class="status-radio"><label for="sNone" class="status-label"><span class="dot inexistante"></span>Non existante</label></div>
           <div><input type="radio" name="editStatut" id="sUnk" value="unknown" class="status-radio" checked><label for="sUnk" class="status-label"><span class="dot unknown"></span>Non vérifiée</label></div>
         </div>
       </div>
@@ -652,12 +658,14 @@ function getStatusClass(s) {
   if (s === 'operationnelle') return 'ok';
   if (s === 'cassee') return 'broken';
   if (s === 'inaccessible') return 'inaccessible';
+  if (s === 'inexistante') return 'inexistante';
   return 'unknown';
 }
 function getStatusLabel(s) {
   if (s === 'operationnelle') return '✅ Opérationnelle';
   if (s === 'cassee') return '🔴 Cassée';
   if (s === 'inaccessible') return '⚠️ Inaccessible';
+  if (s === 'inexistante') return '🚫 Non existante';
   return '❓ Non vérifiée';
 }
 function formatDate(d) {
@@ -696,6 +704,7 @@ function updateStats() {
   document.getElementById('statOk').textContent = balises.filter(b => b.statut === 'operationnelle').length;
   document.getElementById('statBroken').textContent = balises.filter(b => b.statut === 'cassee').length;
   document.getElementById('statWarn').textContent = balises.filter(b => b.statut === 'inaccessible').length;
+  document.getElementById('statNone').textContent = balises.filter(b => b.statut === 'inexistante').length;
   document.getElementById('statUnk').textContent = balises.filter(b => b.statut === 'unknown' || !b.statut).length;
 }
 
