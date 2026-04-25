@@ -1025,7 +1025,12 @@ async function saveAnnonce() {
 
 function toggleAnnonceVisible() {
   localAnnonceVisible = !localAnnonceVisible;
-  loadAnnonce();
+  const bar = document.getElementById('annonceBar');
+  const visibleBtn = document.getElementById('annonceVisibleBtn');
+  bar.style.display = localAnnonceVisible ? 'flex' : 'none';
+  visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
+  visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
+  visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
 }
 
 async function loadAnnonce() {
