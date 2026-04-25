@@ -333,6 +333,7 @@
             <label class="perm-check-add"><input type="checkbox" id="addPerm_modifier_balises"> ✏️ Modifier balises</label>
             <label class="perm-check-add"><input type="checkbox" id="addPerm_modifier_credits"> 📝 Modifier crédits</label>
             <label class="perm-check-add"><input type="checkbox" id="addPerm_confirmer_etat"> ✔ Confirmer état</label>
+            <label class="perm-check-add"><input type="checkbox" id="addPerm_voir_lieu"> 📍 Voir lieu</label>
           </div>
           <button class="btn-primary" onclick="addGuest()" style="font-size:0.82rem;padding:9px 16px">➕ Ajouter l'invité</button>
         </div>
@@ -424,7 +425,8 @@ let guestPerms = {
   photos: false,
   modifier_balises: false,
   modifier_credits: false,
-  confirmer_etat: false
+  confirmer_etat: false,
+  voir_lieu: false
 };
 
 let currentFilter = 'all';
@@ -468,6 +470,7 @@ const PERMS_DEF = [
   { key: 'modifier_balises', label: '✏️ Modifier balises' },
   { key: 'modifier_credits', label: '📝 Modifier crédits' },
   { key: 'confirmer_etat',   label: '✔ Confirmer état' },
+  { key: 'voir_lieu',        label: '📍 Voir lieu' },
 ];
 
 async function loadGuests() {
@@ -635,6 +638,7 @@ async function checkLogin() {
         modifier_balises: !!g.perm_modifier_balises,
         modifier_credits: !!g.perm_modifier_credits,
         confirmer_etat:   !!g.perm_confirmer_etat,
+        voir_lieu:        !!g.perm_voir_lieu,
       };
       closeOverlay('overlayLogin');
       document.getElementById('loginNameInput').value = '';
@@ -657,6 +661,7 @@ function canSeePhotos()   { return isAdmin || (isGuest && guestPerms.photos); }
 function canEditBalises() { return isAdmin || (isGuest && guestPerms.modifier_balises); }
 function canEditCredits() { return isAdmin || (isGuest && guestPerms.modifier_credits); }
 function canConfirmEtat() { return isAdmin || (isGuest && guestPerms.confirmer_etat); }
+function canVoirLieu()    { return isAdmin || (isGuest && guestPerms.voir_lieu); }
 
 function setFilter(f, el) {
   currentFilter = f;
@@ -703,7 +708,7 @@ function renderGrid() {
     return `
       <div class="card ${sc}" onclick="openDetail(this.dataset.id)" data-id="${b.id}">
         <div class="card-code">${b.code || '?'}</div>
-        <div class="card-name">${b.nom || ''}</div>
+        ${canVoirLieu() ? `<div class="card-name">${b.nom || ''}</div>` : ''}
         <div class="card-status"><div class="dot ${sc}"></div>${getStatusLabel(b.statut)}</div>
         ${verifStr ? `<div class="card-verif">${verifStr}</div>` : ''}
         ${showPoincon ? `<div class="card-poincon-mini">${pips.map(p => `<div class="pip-mini${p?' on':''}"></div>`).join('')}</div>` : ''}
@@ -736,7 +741,7 @@ function openDetail(id) {
   const sc = getStatusClass(b.statut);
   let html = `
     <div class="detail-code">${b.code || '?'}</div>
-    <div class="detail-name">${b.nom || ''}</div>
+    ${canVoirLieu() ? `<div class="detail-name">${b.nom || ''}</div>` : ''}
     <div class="detail-status"><div class="dot ${sc}" style="width:12px;height:12px"></div>${getStatusLabel(b.statut)}</div>
     ${b.derniere_verif ? `<div class="detail-verif">🕐 Vérifié le ${formatDate(b.derniere_verif)}</div>` : ''}
   `;
