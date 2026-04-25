@@ -307,8 +307,8 @@
     <div class="modal-header"><h2>Se connecter</h2><button class="modal-close" onclick="closeOverlay('overlayLogin')">×</button></div>
     <div class="modal-body">
       <div class="login-form">
-        <input type="text" id="loginNameInput" placeholder="Identifiant" onkeydown="if(event.key==='Enter')checkLogin()">
-        <input type="password" id="loginPassInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkLogin()">
+        <input type="text" id="loginNameInput" placeholder="Identifiant" autocomplete="off" onkeydown="if(event.key==='Enter')checkLogin()">
+        <input type="password" id="loginPassInput" placeholder="Mot de passe" autocomplete="off" onkeydown="if(event.key==='Enter')checkLogin()">
         <button class="btn-primary" onclick="checkLogin()">Se connecter</button>
         <p id="loginError" style="color:var(--broken);font-size:0.8rem;text-align:center;display:none">Identifiant ou mot de passe incorrect</p>
       </div>
