@@ -1038,13 +1038,12 @@ async function loadAnnonce() {
     const editBtn = document.getElementById('annonceEditBtn');
     const visibleBtn = document.getElementById('annonceVisibleBtn');
     txt.textContent = contenu || '';
-    bar.style.display = (contenu && localAnnonceVisible) ? 'flex' : 'none';
     editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
     visibleBtn.style.display = 'inline-block';
     visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
     visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
     visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
-    bar.style.display = (contenu && localAnnonceVisible) || canModifierAnnonce() ? 'flex' : 'none';
+    bar.style.display = (contenu && localAnnonceVisible) || !localAnnonceVisible ? 'flex' : 'none';
   } catch(e) {}
 }
 async function openAnnonce() {
