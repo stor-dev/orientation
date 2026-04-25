@@ -1032,7 +1032,6 @@ async function loadAnnonce() {
   try {
     const rows = await api('annonce?id=eq.1');
     const contenu = rows && rows[0] ? rows[0].contenu : '';
-    annonceVisible = rows && rows[0] ? rows[0].visible !== false : true;
     const bar = document.getElementById('annonceBar');
     const txt = document.getElementById('annonceText');
     const editBtn = document.getElementById('annonceEditBtn');
