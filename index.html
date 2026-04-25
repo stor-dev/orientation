@@ -1023,14 +1023,9 @@ async function saveAnnonce() {
   } catch(e) { showToast('Erreur annonce'); }
 }
 
-async function toggleAnnonceVisible() {
-  if (!canModifierAnnonce()) return;
-  annonceVisible = !annonceVisible;
-  try {
-    await api('annonce?id=eq.1', { method: 'PATCH', body: JSON.stringify({ visible: annonceVisible }), prefer: 'return=minimal' });
-    loadAnnonce();
-    showToast(annonceVisible ? 'Annonce affichée' : 'Annonce masquée');
-  } catch(e) { showToast('Erreur'); }
+function toggleAnnonceVisible() {
+  localAnnonceVisible = !localAnnonceVisible;
+  loadAnnonce();
 }
 
 async function loadAnnonce() {
@@ -1043,12 +1038,13 @@ async function loadAnnonce() {
     const editBtn = document.getElementById('annonceEditBtn');
     const visibleBtn = document.getElementById('annonceVisibleBtn');
     txt.textContent = contenu || '';
-    bar.style.display = (contenu && annonceVisible) || canModifierAnnonce() ? 'flex' : 'none';
+    bar.style.display = (contenu && localAnnonceVisible) ? 'flex' : 'none';
     editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-    visibleBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-    visibleBtn.textContent = annonceVisible ? '👁️ Masquer' : '👁️ Afficher';
-    visibleBtn.style.borderColor = annonceVisible ? '#888' : '#4caf50';
-    visibleBtn.style.color = annonceVisible ? '#888' : '#4caf50';
+    visibleBtn.style.display = 'inline-block';
+    visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
+    visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
+    visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
+    bar.style.display = (contenu && localAnnonceVisible) || canModifierAnnonce() ? 'flex' : 'none';
   } catch(e) {}
 }
 async function openAnnonce() {
