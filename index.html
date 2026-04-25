@@ -690,7 +690,7 @@ function renderGrid() {
     const showPoincon = canSeePoincons() && pips;
     const verifStr = b.derniere_verif ? `Vérifié le ${formatDate(b.derniere_verif)}` : '';
     return `
-      <div class="card ${sc}" onclick="openDetail('${b.id}')">
+      <div class="card ${sc}" onclick="openDetail(this.dataset.id)" data-id="${b.id}">
         <div class="card-code">${b.code || '?'}</div>
         <div class="card-name">${b.nom || ''}</div>
         <div class="card-status"><div class="dot ${sc}"></div>${getStatusLabel(b.statut)}</div>
@@ -720,7 +720,7 @@ async function loadBalises() {
 
 // ===== DETAIL =====
 function openDetail(id) {
-  const b = balises.find(x => x.id === id);
+  const b = balises.find(x => String(x.id) === String(id));
   if (!b) return;
   const sc = getStatusClass(b.statut);
   let html = `
