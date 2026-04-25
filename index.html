@@ -42,6 +42,7 @@
     cursor: pointer; transition: all 0.2s;
   }
   .btn-header:hover { background: rgba(255,255,255,0.1); border-color: var(--lime); color: var(--lime); }
+  .btn-header#btnLogout:hover { background: rgba(244,67,54,0.15); border-color: #f44336; color: #f44336; }
   .btn-header.active { background: var(--lime); border-color: var(--lime); color: var(--forest); font-weight: 700; }
 
   .stats-bar { background: var(--moss); display: flex; overflow-x: auto; }
@@ -269,6 +270,7 @@
   <h1>🌲 Course <span>d'orientation</span></h1>
   <div class="header-right">
     <button class="btn-header" id="btnLogin" onclick="openLoginModal()">Se connecter</button>
+    <button class="btn-header" id="btnLogout" onclick="logout()" style="display:none;border-color:#f44336;color:#f44336">Déconnexion</button>
   </div>
 </header>
 
@@ -577,14 +579,7 @@ function handlePermToggle(guestId, permKey, value) {
 // ===== AUTH =====
 function openLoginModal() {
   if (isAdmin || isGuest) {
-    // Déconnexion
-    isAdmin = false; isGuest = false;
-    guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
-    document.getElementById('btnLogin').classList.remove('active');
-    document.getElementById('btnLogin').textContent = 'Se connecter';
-    document.getElementById('fabAdd').classList.remove('visible');
-    renderGrid();
-    showToast('Déconnecté');
+    openOverlay('overlayLogin');
     return;
   }
   document.getElementById('adminGuestSection').style.display = 'none';
@@ -592,6 +587,17 @@ function openLoginModal() {
   document.getElementById('loginNameInput').value = '';
   document.getElementById('loginPassInput').value = '';
   openOverlay('overlayLogin');
+}
+
+function logout() {
+  isAdmin = false; isGuest = false;
+  guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
+  document.getElementById('btnLogin').classList.remove('active');
+  document.getElementById('btnLogin').textContent = 'Se connecter';
+  document.getElementById('btnLogout').style.display = 'none';
+  document.getElementById('fabAdd').classList.remove('visible');
+  renderGrid();
+  showToast('Déconnecté');
 }
 
 async function checkLogin() {
@@ -607,6 +613,7 @@ async function checkLogin() {
     document.getElementById('loginPassInput').value = '';
     document.getElementById('loginError').style.display = 'none';
     document.getElementById('btnLogin').classList.add('active');
+    document.getElementById('btnLogout').style.display = 'inline-block';
     document.getElementById('btnLogin').textContent = '⚙️ Admin';
     document.getElementById('fabAdd').classList.add('visible');
     document.getElementById('adminGuestSection').style.display = 'block';
@@ -632,6 +639,7 @@ async function checkLogin() {
       closeOverlay('overlayLogin');
       document.getElementById('loginNameInput').value = '';
       document.getElementById('loginPassInput').value = '';
+      document.getElementById('btnLogout').style.display = 'inline-block';
       document.getElementById('btnLogin').classList.add('active');
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
