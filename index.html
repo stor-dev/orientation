@@ -282,6 +282,10 @@
   <div class="stat"><div class="stat-num unk" id="statUnk">–</div><div class="stat-label">❓ N/V</div></div>
 </div>
 
+<div id="annonceBar" style="background:#fffde7;border-bottom:1px solid #ffe082;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+  <div id="annonceText" style="font-size:0.85rem;color:#5d4037;font-family:'DM Mono',monospace;flex:1">Chargement…</div>
+  <button id="annonceEditBtn" onclick="openAnnonce()" style="display:none;background:none;border:1.5px solid #ffb300;color:#f57c00;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">✏️ Modifier</button>
+</div>
 <div class="search-bar">
   <input type="text" style="display:none" aria-hidden="true">
   <input type="password" style="display:none" aria-hidden="true">
@@ -302,6 +306,7 @@
 </div>
 
 <div class="fab-container">
+  <button class="fab fab-credits" onclick="openAnnonce()" title="Annonce" id="fabAnnonce" style="display:none">📢</button>
   <button class="fab fab-credits" onclick="openCredits()" title="Crédits">ℹ️</button>
   <button class="fab fab-add" id="fabAdd" onclick="openAddModal()">+</button>
 </div>
@@ -334,6 +339,7 @@
             <label class="perm-check-add"><input type="checkbox" id="addPerm_modifier_credits"> 📝 Modifier crédits</label>
             <label class="perm-check-add"><input type="checkbox" id="addPerm_confirmer_etat"> ✔ Confirmer état</label>
             <label class="perm-check-add"><input type="checkbox" id="addPerm_voir_lieu"> 📍 Voir lieu</label>
+            <label class="perm-check-add"><input type="checkbox" id="addPerm_modifier_annonce"> 📢 Modifier annonce</label>
           </div>
           <button class="btn-primary" onclick="addGuest()" style="font-size:0.82rem;padding:9px 16px">➕ Ajouter l'invité</button>
         </div>
@@ -426,7 +432,8 @@ let guestPerms = {
   modifier_balises: false,
   modifier_credits: false,
   confirmer_etat: false,
-  voir_lieu: false
+  voir_lieu: false,
+  modifier_annonce: false
 };
 
 let currentFilter = 'all';
@@ -471,6 +478,7 @@ const PERMS_DEF = [
   { key: 'modifier_credits', label: '📝 Modifier crédits' },
   { key: 'confirmer_etat',   label: '✔ Confirmer état' },
   { key: 'voir_lieu',        label: '📍 Voir lieu' },
+  { key: 'modifier_annonce', label: '📢 Modifier annonce' },
 ];
 
 async function loadGuests() {
@@ -639,6 +647,7 @@ async function checkLogin() {
         modifier_credits: !!g.perm_modifier_credits,
         confirmer_etat:   !!g.perm_confirmer_etat,
         voir_lieu:        !!g.perm_voir_lieu,
+        modifier_annonce: !!g.perm_modifier_annonce,
       };
       closeOverlay('overlayLogin');
       document.getElementById('loginNameInput').value = '';
@@ -662,6 +671,7 @@ function canEditBalises() { return isAdmin || (isGuest && guestPerms.modifier_ba
 function canEditCredits() { return isAdmin || (isGuest && guestPerms.modifier_credits); }
 function canConfirmEtat() { return isAdmin || (isGuest && guestPerms.confirmer_etat); }
 function canVoirLieu()    { return isAdmin || (isGuest && guestPerms.voir_lieu); }
+function canModifierAnnonce() { return isAdmin || (isGuest && guestPerms.modifier_annonce); }
 
 function setFilter(f, el) {
   currentFilter = f;
@@ -973,6 +983,40 @@ async function saveCredits() {
   } catch(e) { showToast('Erreur : ' + e.message); }
 }
 
+
+// ===== ANNONCE =====
+async function openAnnonce() {
+  try {
+    const rows = await api('annonce?id=eq.1');
+    const contenu = rows && rows[0] ? rows[0].contenu : '';
+    const visible = rows && rows[0] ? rows[0].visible : true;
+    if (canModifierAnnonce()) {
+      const texte = prompt('Modifier l\'annonce :', contenu);
+      if (texte === null) return;
+      await api('annonce?id=eq.1', { method: 'PATCH', body: JSON.stringify({ contenu: texte }), prefer: 'return=minimal' });
+      showToast('Annonce mise à jour !');
+      loadAnnonce();
+    }
+  } catch(e) { showToast('Erreur annonce'); }
+}
+
+async function loadAnnonce() {
+  try {
+    const rows = await api('annonce?id=eq.1');
+    const contenu = rows && rows[0] ? rows[0].contenu : '';
+    const visible = rows && rows[0] ? rows[0].visible !== false : true;
+    const bar = document.getElementById('annonceBar');
+    const txt = document.getElementById('annonceText');
+    const editBtn = document.getElementById('annonceEditBtn');
+    const fabAnnonce = document.getElementById('fabAnnonce');
+    txt.textContent = contenu || '';
+    bar.style.display = (contenu && visible) ? 'flex' : 'none';
+    editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
+    fabAnnonce.style.display = canModifierAnnonce() ? 'flex' : 'none';
+  } catch(e) {}
+} 
+
+
 // ===== UTILS =====
 function openOverlay(id) { document.getElementById(id).classList.add('open'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
@@ -989,6 +1033,7 @@ document.querySelectorAll('.overlay').forEach(o => {
 });
 
 loadBalises();
+loadAnnonce();
 setTimeout(() => { document.getElementById('searchInput').value = ''; renderGrid(); }, 500);
 </script>
 </body>
