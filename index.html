@@ -1036,7 +1036,6 @@ async function loadAnnonce() {
     editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
     visibleBtn.style.display = 'inline-block';
     visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
-    visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
     visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
     visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
     bar.style.display = (contenu && localAnnonceVisible) ? 'flex' : 'none';
