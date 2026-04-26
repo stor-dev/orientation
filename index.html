@@ -629,12 +629,14 @@ function openLoginModal() {
 
 function logout() {
   isAdmin = false; isGuest = false;
-  guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false };
+  guestPerms = { poincons: false, photos: false, modifier_balises: false, modifier_credits: false, confirmer_etat: false, voir_lieu: false, modifier_annonce: false };
   document.getElementById('btnLogin').classList.remove('active');
   document.getElementById('btnLogin').textContent = 'Se connecter';
   document.getElementById('btnLogout').style.display = 'none';
   document.getElementById('fabAdd').classList.remove('visible');
+  document.getElementById('annonceEditBtn').style.display = 'none';
   renderGrid();
+  loadAnnonce();
   showToast('Déconnecté');
 }
 
