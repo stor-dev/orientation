@@ -284,7 +284,7 @@
 
 <div id="annonceBar" style="background:#fffde7;border-bottom:1px solid #ffe082;padding:10px 16px;display:flex;flex-direction:column;gap:8px">
   <div id="annonceText" style="font-size:0.85rem;color:#5d4037;font-family:'DM Mono',monospace;white-space:pre-wrap"></div>
-  <div style="display:flex;gap:6px;justify-content:flex-end">
+  <div style="display:flex;gap:6px;justify-content:flex-start">
     <button id="annonceEditBtn" onclick="openAnnonceModal()" style="display:none;background:none;border:1.5px solid #ffb300;color:#f57c00;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">✏️ Modifier</button>
     <button id="annonceVisibleBtn" onclick="localAnnonceVisible=!localAnnonceVisible;document.getElementById('annonceBar').style.display=localAnnonceVisible?'flex':'none';this.textContent=localAnnonceVisible?'👁️ Masquer':'👁️ Afficher'" style="display:inline-block;background:none;border:1.5px solid #888;color:#888;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">👁️ Masquer</button>
   </div>
