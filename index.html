@@ -73,10 +73,11 @@
 
   .grid { padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
   .card {
-    background: white; border-radius: 10px; padding: 14px;
-    border: 2px solid transparent; cursor: pointer;
-    transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
+  background: white; border-radius: 10px; padding: 14px;
+  border: 2px solid transparent; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column;
+}
   .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
   .card.ok { border-color: var(--ok); }
   .card.broken { border-color: var(--broken); }
@@ -86,7 +87,7 @@
 
   .card-code { font-size: 1.6rem; font-weight: 800; color: var(--forest); line-height: 1; }
   .card-name { font-size: 0.8rem; color: #666; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-status { margin-top: 10px; display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 0.7rem; }
+  .card-status { margin-top: 10px; display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .card-verif { margin-top: 4px; font-family: 'DM Mono', monospace; font-size: 0.65rem; color: #aaa; }
 
   .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -742,7 +743,7 @@ if (pips) pips = pips.slice(0, (b.lignes || 5) * 3);
     return `
       <div class="card ${sc}" onclick="openDetail(this.dataset.id)" data-id="${b.id}">
         <div class="card-code">${b.code || '?'}</div>
-        ${canVoirLieu() ? `<div class="card-name">${b.nom || ''}</div>` : ''}
+        <div class="card-name" style="min-height:1.1em">${canVoirLieu() ? (b.nom || '') : ''}</div>
         <div class="card-status"><div class="dot ${sc}"></div>${getStatusLabel(b.statut)}</div>
         ${verifStr ? `<div class="card-verif">${verifStr}</div>` : ''}
         ${showPoincon ? `<div class="card-poincon-mini">${pips.map(p => `<div class="pip-mini${p?' on':''}"></div>`).join('')}</div>` : ''}
