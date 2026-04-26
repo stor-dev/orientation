@@ -1039,9 +1039,15 @@ async function loadAnnonce() {
     visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
     visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
     if (localAnnonceVisible) {
-  bar.style.display = contenu ? 'flex' : 'none';
+  document.getElementById('annonceText').style.display = contenu ? 'block' : 'none';
+  document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
+  document.getElementById('annonceVisibleBtn').style.display = 'inline-block';
+  bar.style.display = 'flex';
 } else {
-  bar.style.display = 'none';
+  document.getElementById('annonceText').style.display = 'none';
+  document.getElementById('annonceEditBtn').style.display = 'none';
+  document.getElementById('annonceVisibleBtn').style.display = 'inline-block';
+  bar.style.display = 'flex';
 }
   } catch(e) {}
 }
