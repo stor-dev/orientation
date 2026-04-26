@@ -392,11 +392,11 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
       <input type="hidden" id="editId">
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
         <div class="field"><label>Code</label><input type="text" id="editCode" placeholder="ex: 42"></div>
-        <div class="field"><label>Nom / Lieu</label><input type="text" id="editName" placeholder="ex: Carrefour du chêne"></div>
+        <div class="field" id="fieldNom"><label>Nom / Lieu</label><input type="text" id="editName" placeholder="ex: Carrefour du chêne"></div>
       </div>
-      <div class="field">
-        <label>Statut</label>
-        <div class="status-grid">
+      <div class="field" id="fieldPoincon">
+        <label>Poinçon (grille 3×3)</label>
+        <div class="poincon-editor">
           <div><input type="radio" name="editStatut" id="sOk" value="operationnelle" class="status-radio"><label for="sOk" class="status-label"><span class="dot ok"></span>Opérationnelle</label></div>
           <div><input type="radio" name="editStatut" id="sBroken" value="cassee" class="status-radio"><label for="sBroken" class="status-label"><span class="dot broken"></span>Cassée</label></div>
           <div><input type="radio" name="editStatut" id="sWarn" value="inaccessible" class="status-radio"><label for="sWarn" class="status-label"><span class="dot inaccessible"></span>Inaccessible</label></div>
