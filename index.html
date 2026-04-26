@@ -1042,10 +1042,6 @@ function updatePoinconPreview() {
 
 function openAddModal() {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
-  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
-  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
-  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
-  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   document.getElementById('editTitle').textContent = 'Nouvelle balise';
   document.getElementById('editId').value = '';
   document.getElementById('editCode').value = '';
@@ -1053,8 +1049,11 @@ function openAddModal() {
   document.getElementById('editNotes').value = '';
   document.getElementById('sUnk').checked = true;
   document.getElementById('btnDelete').style.display = 'none';
+  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
+  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   poinconState = Array(15).fill(false);
-  poinconDir = 'bottom';
+  poinconDir = 'top';
   editLignes = 5;
   editPhotos = [];
   initPoinconEditor();
@@ -1064,7 +1063,6 @@ function openAddModal() {
 
 function openEditModal(id) {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
-  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
   const b = balises.find(x => x.id === id);
   if (!b) return;
   document.getElementById('editTitle').textContent = 'Modifier balise ' + (b.code || '');
@@ -1073,6 +1071,9 @@ function openEditModal(id) {
   document.getElementById('editName').value = b.nom || '';
   document.getElementById('editNotes').value = b.notes || '';
   document.getElementById('btnDelete').style.display = isAdmin ? 'inline-block' : 'none';
+  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
+  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   document.querySelectorAll('[name="editStatut"]').forEach(r => { r.checked = r.value === (b.statut || 'unknown'); });
   poinconState = b.poincon ? JSON.parse(b.poincon) : Array(15).fill(false);
   poinconDir = b.direction || 'top';
