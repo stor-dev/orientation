@@ -784,8 +784,8 @@ async function checkLogin() {
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
         if (guestPerms.voir_signalements) {
-        document.getElementById('fabSignalements').style.display = 'flex';
-        document.getElementById('fabHistorique').style.display = 'flex';
+  document.getElementById('fabSignalements').style.display = 'flex';
+}
       }
           renderGrid();
           document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
