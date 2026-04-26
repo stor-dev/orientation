@@ -311,6 +311,13 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
   <button class="filter-btn" onclick="setFilter('inexistante', this)">🚫 Non existantes</button>
   <button class="filter-btn" onclick="setFilter('unknown', this)">❓ Non vérifiées</button>
 </div>
+<div style="padding:8px 16px;background:var(--mist);border-bottom:1px solid #d0d9cc;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+  <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:#888">Trier :</span>
+  <button class="filter-btn" id="sortStatut" onclick="setSort('statut', this)">Par statut</button>
+  <button class="filter-btn" id="sortVerifAsc" onclick="setSort('verif_asc', this)">Vérif. ↑</button>
+  <button class="filter-btn" id="sortVerifDesc" onclick="setSort('verif_desc', this)">Vérif. ↓</button>
+  <button class="filter-btn" id="sortDefault" onclick="setSort('default', this)" style="background:var(--forest);color:var(--paper);border-color:var(--forest)">Par défaut</button>
+</div>
 
 <div id="gridContainer" class="grid">
   <div class="loading">Chargement des balises…</div>
@@ -524,6 +531,7 @@ let guestPerms = {
 };
 
 let currentFilter = 'all';
+let currentSort = 'default';
 let balises = [];
 let editPhotos = [];
 let poinconState = Array(15).fill(false);
@@ -802,8 +810,22 @@ function setFilter(f, el) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
+  // Remettre le style actif sur le tri courant
+  const sortEl = document.getElementById('sort' + currentSort.charAt(0).toUpperCase() + currentSort.slice(1).replace('_asc','Asc').replace('_desc','Desc'));
+  if (sortEl) sortEl.style.cssText = 'background:var(--forest);color:var(--paper);border-color:var(--forest)';
   renderGrid();
 }
+
+function setSort(s, el) {
+  currentSort = s;
+  document.querySelectorAll('#sortStatut,#sortVerifAsc,#sortVerifDesc,#sortDefault').forEach(b => {
+    b.style.cssText = '';
+  });
+  el.style.cssText = 'background:var(--forest);color:var(--paper);border-color:var(--forest)';
+  renderGrid();
+}
+
+const STATUS_ORDER = { operationnelle: 0, inaccessible: 1, cassee: 2, inexistante: 3, unknown: 4 };
 
 function getStatusClass(s) {
   if (s === 'operationnelle') return 'ok';
@@ -836,12 +858,19 @@ function formatRelative(d) {
 }
 function renderGrid() {
   const search = (document.getElementById('searchInput').value || '').toLowerCase();
-  let filtered = balises;
+  let filtered = [...balises];
   if (currentFilter !== 'all') filtered = filtered.filter(b => (b.statut || 'unknown') === currentFilter);
   if (search) filtered = filtered.filter(b =>
     (b.code || '').toLowerCase().includes(search) ||
     (b.nom || '').toLowerCase().includes(search)
   );
+  if (currentSort === 'statut') {
+    filtered.sort((a, b) => (STATUS_ORDER[a.statut||'unknown'] || 0) - (STATUS_ORDER[b.statut||'unknown'] || 0));
+  } else if (currentSort === 'verif_asc') {
+    filtered.sort((a, b) => new Date(a.derniere_verif||0) - new Date(b.derniere_verif||0));
+  } else if (currentSort === 'verif_desc') {
+    filtered.sort((a, b) => new Date(b.derniere_verif||0) - new Date(a.derniere_verif||0));
+  }
   const container = document.getElementById('gridContainer');
   if (!filtered.length) { container.innerHTML = '<div class="empty">Aucune balise trouvée</div>'; return; }
 
