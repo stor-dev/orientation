@@ -184,7 +184,9 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
   .btn-secondary { background: var(--mist); color: var(--forest); border: 1.5px solid #c0cabb; padding: 8px 16px; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .btn-secondary:hover { background: #d0dbc8; }
   .btn-confirm { background: #e8f5e9; color: var(--ok); border: 1.5px solid var(--ok); padding: 8px 16px; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-confirm:hover { background: var(--ok); color: white; }
+.btn-confirm:hover { background: var(--ok); color: white; }
+.btn-warn { background: #fff3e0; color: #e65100; border: 1.5px solid #ff9800; padding: 8px 16px; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-warn:hover { background: #ff9800; color: white; }
   .btn-edit-perm { background: #fff8e1; color: #f57c00; border: 1.5px solid #ffb300; padding: 4px 10px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .btn-edit-perm:hover { background: #ffb300; color: white; }
 
@@ -316,6 +318,7 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
 
 <div class="fab-container">
   <button class="fab fab-credits" onclick="openCredits()" title="Crédits">ℹ️</button>
+  <button class="fab" id="fabSignalements" onclick="openSignalements()" title="Signalements" style="background:#fff3e0;color:#e65100;display:none;font-size:1rem">🚨</button>
   <button class="fab fab-add" id="fabAdd" onclick="openAddModal()">+</button>
 </div>
 
@@ -427,6 +430,50 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
   </div>
 </div>
 
+<!-- MODAL SIGNALER -->
+<div class="overlay" id="overlaySignal">
+  <div class="modal">
+    <div class="modal-header"><h2>🚨 Signaler une balise</h2><button class="modal-close" onclick="closeOverlay('overlaySignal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="signalCode">
+      <div class="field">
+        <label>Balise signalée</label>
+        <div id="signalBaliseLabel" style="font-size:2rem;font-weight:800;color:var(--forest)"></div>
+      </div>
+      <div class="field">
+        <label>État constaté</label>
+        <div class="status-grid">
+          <div><input type="radio" name="signalEtat" id="sigOk" value="operationnelle" class="status-radio"><label for="sigOk" class="status-label"><span class="dot ok"></span>Opérationnelle</label></div>
+          <div><input type="radio" name="signalEtat" id="sigBroken" value="cassee" class="status-radio"><label for="sigBroken" class="status-label"><span class="dot broken"></span>Cassée</label></div>
+          <div><input type="radio" name="signalEtat" id="sigWarn" value="inaccessible" class="status-radio"><label for="sigWarn" class="status-label"><span class="dot inaccessible"></span>Inaccessible</label></div>
+          <div><input type="radio" name="signalEtat" id="sigNone" value="inexistante" class="status-radio"><label for="sigNone" class="status-label"><span class="dot inexistante"></span>Non existante</label></div>
+        </div>
+      </div>
+      <div class="field"><label>Message (optionnel)</label><textarea id="signalMessage" placeholder="Décris ce que tu as observé…"></textarea></div>
+      <div class="field photos-section">
+        <label>Photo (optionnelle)</label>
+        <div id="signalPhotoGrid" class="photos-grid"></div>
+        <input type="file" id="signalPhotoInput" accept="image/*" style="display:none" onchange="handleSignalPhoto(event)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="submitSignal()">📤 Envoyer le signalement</button>
+      <button class="btn-secondary" onclick="closeOverlay('overlaySignal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SIGNALEMENTS LISTE -->
+<div class="overlay" id="overlaySignalements">
+  <div class="modal">
+    <div class="modal-header"><h2>🚨 Signalements</h2><button class="modal-close" onclick="closeOverlay('overlaySignalements')">×</button></div>
+    <div class="modal-body" id="signalementsBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeOverlay('overlaySignalements')">Fermer</button>
+    </div>
+  </div>
+</div>
+  
 <!-- MODAL CRÉDITS -->
 <div class="overlay" id="overlayCredits">
   <div class="modal">
@@ -459,7 +506,8 @@ let guestPerms = {
   modifier_credits: false,
   confirmer_etat: false,
   voir_lieu: false,
-  modifier_annonce: false
+  modifier_annonce: false,
+  voir_signalements: false
 };
 
 let currentFilter = 'all';
@@ -506,6 +554,7 @@ const PERMS_DEF = [
   { key: 'confirmer_etat',   label: '✔ Confirmer état' },
   { key: 'voir_lieu',        label: '📍 Voir lieu' },
   { key: 'modifier_annonce', label: '📢 Modifier annonce' },
+  { key: 'voir_signalements', label: '🚨 Voir signalements' },
 ];
 
 async function loadGuests() {
@@ -634,6 +683,7 @@ function logout() {
   document.getElementById('btnLogin').textContent = 'Se connecter';
   document.getElementById('btnLogout').style.display = 'none';
   document.getElementById('fabAdd').classList.remove('visible');
+  document.getElementById('fabSignalements').style.display = 'none';
   document.getElementById('annonceEditBtn').style.display = 'none';
   renderGrid();
   loadAnnonce();
@@ -656,6 +706,7 @@ async function checkLogin() {
     document.getElementById('btnLogout').style.display = 'inline-block';
     document.getElementById('btnLogin').textContent = '⚙️ Admin';
     document.getElementById('fabAdd').classList.add('visible');
+    document.getElementById('fabSignalements').style.display = 'flex';
     document.getElementById('adminGuestSection').style.display = 'block';
     loadGuests();
     renderGrid();
@@ -671,13 +722,14 @@ async function checkLogin() {
       const g = guests[0];
       isGuest = true; isAdmin = false;
       guestPerms = {
-        poincons:         !!g.perm_poincons,
-        photos:           !!g.perm_photos,
-        modifier_balises: !!g.perm_modifier_balises,
-        modifier_credits: !!g.perm_modifier_credits,
-        confirmer_etat:   !!g.perm_confirmer_etat,
-        voir_lieu:        !!g.perm_voir_lieu,
-        modifier_annonce: !!g.perm_modifier_annonce,
+        poincons:           !!g.perm_poincons,
+        photos:             !!g.perm_photos,
+        modifier_balises:   !!g.perm_modifier_balises,
+        modifier_credits:   !!g.perm_modifier_credits,
+        confirmer_etat:     !!g.perm_confirmer_etat,
+        voir_lieu:          !!g.perm_voir_lieu,
+        modifier_annonce:   !!g.perm_modifier_annonce,
+        voir_signalements:  !!g.perm_voir_signalements,
       };
       closeOverlay('overlayLogin');
       document.getElementById('loginNameInput').value = '';
@@ -686,11 +738,12 @@ async function checkLogin() {
       document.getElementById('btnLogin').classList.add('active');
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
-      renderGrid();
-      document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-      showToast('Bienvenue ' + g.nom + ' !');
-    } else {
-      document.getElementById('loginError').style.display = 'block';
+        if (guestPerms.voir_signalements) document.getElementById('fabSignalements').style.display = 'flex';
+          renderGrid();
+          document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
+          showToast('Bienvenue ' + g.nom + ' !');
+      } else {
+        document.getElementById('loginError').style.display = 'block';
     }
   } catch(e) { document.getElementById('loginError').style.display = 'block'; }
 }
@@ -703,6 +756,7 @@ function canEditCredits() { return isAdmin || (isGuest && guestPerms.modifier_cr
 function canConfirmEtat() { return isAdmin || (isGuest && guestPerms.confirmer_etat); }
 function canVoirLieu()    { return isAdmin || (isGuest && guestPerms.voir_lieu); }
 function canModifierAnnonce() { return isAdmin || (isGuest && guestPerms.modifier_annonce); }
+function canVoirSignalements() { return isAdmin || (isGuest && guestPerms.voir_signalements); }
 
 function setFilter(f, el) {
   currentFilter = f;
@@ -823,6 +877,7 @@ function openDetail(id) {
   let footer = '';
   if (canEditBalises()) footer += `<button class="btn-primary" onclick="closeOverlay('overlayDetail');openEditModal('${id}')">✏️ Modifier</button>`;
   if (canConfirmEtat()) footer += `<button class="btn-confirm" onclick="confirmEtat('${id}')">✔ Confirmer l'état</button>`;
+  footer += `<button class="btn-warn" onclick="openSignalModal('${b.code}')">🚨 Signaler</button>`;
   if (!footer) footer = `<button class="btn-secondary" onclick="closeOverlay('overlayDetail')">Fermer</button>`;
   else footer += `<button class="btn-secondary" onclick="closeOverlay('overlayDetail')">Fermer</button>`;
 
@@ -1125,6 +1180,102 @@ document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
 
+
+// ===== SIGNALEMENTS =====
+let signalPhoto = null;
+
+function openSignalModal(code) {
+  document.getElementById('signalCode').value = code;
+  document.getElementById('signalBaliseLabel').textContent = code;
+  document.getElementById('signalMessage').value = '';
+  document.querySelectorAll('[name="signalEtat"]').forEach(r => r.checked = false);
+  signalPhoto = null;
+  renderSignalPhoto();
+  closeOverlay('overlayDetail');
+  openOverlay('overlaySignal');
+}
+
+function handleSignalPhoto(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  signalPhoto = { file: f, url: URL.createObjectURL(f) };
+  renderSignalPhoto();
+  e.target.value = '';
+}
+
+function renderSignalPhoto() {
+  const grid = document.getElementById('signalPhotoGrid');
+  grid.innerHTML = '';
+  if (signalPhoto) {
+    const wrap = document.createElement('div'); wrap.className = 'photo-del';
+    const img = document.createElement('img'); img.src = signalPhoto.url; img.className = 'photo-thumb';
+    const del = document.createElement('button'); del.className = 'photo-del-btn'; del.textContent = '×';
+    del.onclick = () => { signalPhoto = null; renderSignalPhoto(); };
+    wrap.appendChild(img); wrap.appendChild(del); grid.appendChild(wrap);
+  } else {
+    const add = document.createElement('div'); add.className = 'photo-add'; add.textContent = '+';
+    add.onclick = () => document.getElementById('signalPhotoInput').click();
+    grid.appendChild(add);
+  }
+}
+
+async function submitSignal() {
+  const code = document.getElementById('signalCode').value;
+  const etat = document.querySelector('[name="signalEtat"]:checked')?.value;
+  const message = document.getElementById('signalMessage').value.trim();
+  if (!etat) { showToast('Choisis un état'); return; }
+  try {
+    let photoUrl = null;
+    if (signalPhoto) photoUrl = await uploadPhoto(signalPhoto.file);
+    const qui = isAdmin ? 'Admin' : (document.getElementById('btnLogin').textContent.replace('👤 ', ''));
+    await api('signalements', { method: 'POST', body: JSON.stringify({
+      balise_code: code,
+      etat,
+      message: message || null,
+      photo: photoUrl,
+      signale_par: qui
+    })});
+    closeOverlay('overlaySignal');
+    showToast('Signalement envoyé !');
+  } catch(e) { showToast('Erreur : ' + e.message); }
+}
+
+async function openSignalements() {
+  if (!canVoirSignalements()) { showToast('Accès refusé'); return; }
+  try {
+    const rows = await api('signalements?order=created_at.desc');
+    const body = document.getElementById('signalementsBody');
+    if (!rows || !rows.length) {
+      body.innerHTML = '<p style="text-align:center;color:#aaa;font-family:\'DM Mono\',monospace;padding:30px">Aucun signalement</p>';
+    } else {
+      body.innerHTML = rows.map(s => `
+        <div style="border:1.5px solid #e0e0e0;border-radius:10px;padding:14px;margin-bottom:12px;background:white">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:#aaa">${formatDate(s.created_at)} · ${s.signale_par || 'Anonyme'}</span>
+            <button onclick="deleteSignalement('${s.id}')" style="background:none;border:none;color:#f44336;cursor:pointer;font-size:1rem">🗑️</button>
+          </div>
+          <div style="margin-bottom:6px"><span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest)">Balise signalée</span><br><span style="font-size:1.8rem;font-weight:800;color:var(--forest)">${s.balise_code}</span></div>
+          <div style="margin-bottom:6px"><span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest)">État constaté</span><br><span style="font-family:'DM Mono',monospace;font-size:0.85rem">${getStatusLabel(s.etat)}</span></div>
+          ${s.message ? `<div style="margin-bottom:6px"><span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest)">Information complémentaire</span><br><span style="font-size:0.85rem;color:#555">${s.message}</span></div>` : ''}
+          ${s.photo ? `<div><span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--forest)">Photo</span><br><img src="${s.photo}" onclick="openFullscreen('${s.photo}')" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:6px;cursor:pointer;border:2px solid #d0d9cc"></div>` : ''}
+        </div>
+      `).join('');
+    }
+    openOverlay('overlaySignalements');
+  } catch(e) { showToast('Erreur chargement signalements'); }
+}
+
+async function deleteSignalement(id) {
+  if (!isAdmin) { showToast('Accès refusé'); return; }
+  if (!confirm('Supprimer ce signalement ?')) return;
+  try {
+    await api('signalements?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    openSignalements();
+    showToast('Signalement supprimé');
+  } catch(e) { showToast('Erreur : ' + e.message); }
+}
+
+  
 loadBalises();
 loadAnnonce();
 setTimeout(() => { document.getElementById('searchInput').value = ''; renderGrid(); }, 500);
