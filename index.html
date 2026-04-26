@@ -404,7 +404,7 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
           <div><input type="radio" name="editStatut" id="sUnk" value="unknown" class="status-radio" checked><label for="sUnk" class="status-label"><span class="dot unknown"></span>Non vérifiée</label></div>
         </div>
       </div>
-      <div class="field">
+      <div class="field" id="fieldPoincon">
         <label>Poinçon (grille 3×3)</label>
         <div class="poincon-editor">
           <div>
@@ -1042,6 +1042,9 @@ function updatePoinconPreview() {
 
 function openAddModal() {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
+  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
+  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
   document.getElementById('editTitle').textContent = 'Nouvelle balise';
   document.getElementById('editId').value = '';
   document.getElementById('editCode').value = '';
@@ -1060,6 +1063,7 @@ function openAddModal() {
 
 function openEditModal(id) {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
+  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
   const b = balises.find(x => x.id === id);
   if (!b) return;
   document.getElementById('editTitle').textContent = 'Modifier balise ' + (b.code || '');
@@ -1118,13 +1122,13 @@ async function saveBalise() {
     const statutChanged = !oldBalise || oldBalise.statut !== statut;
     const data = {
       code: document.getElementById('editCode').value.trim(),
-      nom: document.getElementById('editName').value.trim(),
+      nom: canVoirLieu() ? document.getElementById('editName').value.trim() : undefined,
       statut,
       notes: document.getElementById('editNotes').value.trim(),
       poincon: JSON.stringify(poinconState),
       direction: poinconDir,
       lignes: editLignes,
-      photos: JSON.stringify(finalPhotos),
+      photos: canSeePhotos() ? JSON.stringify(finalPhotos) : undefined,
       ...(statutChanged ? { derniere_verif: new Date().toISOString(), verifie_par: getCurrentUser() } : {})
 };
 if (id) {
