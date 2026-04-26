@@ -766,7 +766,14 @@ function updateStats() {
 
 async function loadBalises() {
   try {
-    balises = await api('balises?order=code.asc');
+    const raw = await api('balises');
+balises = raw.sort((a, b) => {
+  const na = parseInt(a.code), nb = parseInt(b.code);
+  if (!isNaN(na) && !isNaN(nb)) return na - nb;
+  if (!isNaN(na)) return -1;
+  if (!isNaN(nb)) return 1;
+  return (a.code || '').localeCompare(b.code || '');
+});
     updateStats();
     renderGrid();
   } catch(e) {
