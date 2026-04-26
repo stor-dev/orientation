@@ -286,7 +286,7 @@
   <div id="annonceText" style="font-size:0.85rem;color:#5d4037;font-family:'DM Mono',monospace;white-space:pre-wrap"></div>
   <div style="display:flex;gap:6px;justify-content:flex-start">
     <button id="annonceEditBtn" onclick="openAnnonceModal()" style="display:none;background:none;border:1.5px solid #ffb300;color:#f57c00;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">✏️ Modifier</button>
-    <button id="annonceVisibleBtn" onclick="localAnnonceVisible=!localAnnonceVisible;document.getElementById('annonceBar').style.display=localAnnonceVisible?'flex':'none';this.textContent=localAnnonceVisible?'👁️ Masquer':'👁️ Afficher'" style="display:inline-block;background:none;border:1.5px solid #888;color:#888;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">👁️ Masquer</button>
+    <button id="annonceVisibleBtn" onclick="localAnnonceVisible=!localAnnonceVisible;loadAnnonce();" style="display:inline-block;background:none;border:1.5px solid #888;color:#888;border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:'DM Mono',monospace">👁️ Masquer</button>
   </div>
 </div>
 <div class="search-bar">
@@ -1024,33 +1024,6 @@ async function saveAnnonce() {
   } catch(e) { showToast('Erreur annonce'); }
 }
 
-async function loadAnnonce() {
-  try {
-    const rows = await api('annonce?id=eq.1');
-    const contenu = rows && rows[0] ? rows[0].contenu : '';
-    const bar = document.getElementById('annonceBar');
-    const txt = document.getElementById('annonceText');
-    const editBtn = document.getElementById('annonceEditBtn');
-    const visibleBtn = document.getElementById('annonceVisibleBtn');
-    txt.textContent = contenu || '';
-    editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-    visibleBtn.style.display = 'inline-block';
-    visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
-    visibleBtn.style.borderColor = localAnnonceVisible ? '#888' : '#4caf50';
-    visibleBtn.style.color = localAnnonceVisible ? '#888' : '#4caf50';
-    if (localAnnonceVisible) {
-  document.getElementById('annonceText').style.display = contenu ? 'block' : 'none';
-  document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-  document.getElementById('annonceVisibleBtn').style.display = 'inline-block';
-  bar.style.display = 'flex';
-} else {
-  document.getElementById('annonceText').style.display = 'none';
-  document.getElementById('annonceEditBtn').style.display = 'none';
-  document.getElementById('annonceVisibleBtn').style.display = 'inline-block';
-  bar.style.display = 'flex';
-}
-  } catch(e) {}
-}
 async function openAnnonce() {
   try {
     const rows = await api('annonce?id=eq.1');
@@ -1070,17 +1043,18 @@ async function loadAnnonce() {
   try {
     const rows = await api('annonce?id=eq.1');
     const contenu = rows && rows[0] ? rows[0].contenu : '';
-    const visible = rows && rows[0] ? rows[0].visible !== false : true;
     const bar = document.getElementById('annonceBar');
     const txt = document.getElementById('annonceText');
     const editBtn = document.getElementById('annonceEditBtn');
-    const fabAnnonce = document.getElementById('fabAnnonce');
+    const visibleBtn = document.getElementById('annonceVisibleBtn');
     txt.textContent = contenu || '';
-    bar.style.display = (contenu && visible) ? 'flex' : 'none';
-    editBtn.style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-    fabAnnonce.style.display = canModifierAnnonce() ? 'flex' : 'none';
+    bar.style.display = 'flex';
+    txt.style.display = (contenu && localAnnonceVisible) ? 'block' : 'none';
+    editBtn.style.display = (canModifierAnnonce() && localAnnonceVisible) ? 'inline-block' : 'none';
+    visibleBtn.style.display = 'inline-block';
+    visibleBtn.textContent = localAnnonceVisible ? '👁️ Masquer' : '👁️ Afficher';
   } catch(e) {}
-} 
+}
 
 
 // ===== UTILS =====
