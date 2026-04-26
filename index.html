@@ -1018,6 +1018,7 @@ function initPoinconEditor() {
     };
     dg.appendChild(btn);
   });
+  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
 }
 
 function changeLignes(delta) {
