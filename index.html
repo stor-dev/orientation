@@ -1063,7 +1063,7 @@ function openAddModal() {
 
 function openEditModal(id) {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
-  const b = balises.find(x => x.id === id);
+  const b = balises.find(x => String(x.id) === String(id));
   if (!b) return;
   document.getElementById('editTitle').textContent = 'Modifier balise ' + (b.code || '');
   document.getElementById('editId').value = b.id;
