@@ -783,14 +783,13 @@ async function checkLogin() {
       document.getElementById('btnLogin').classList.add('active');
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
-        if (guestPerms.voir_signalements) {
-  document.getElementById('fabSignalements').style.display = 'flex';
-}
+       if (guestPerms.voir_signalements) {
+        document.getElementById('fabSignalements').style.display = 'flex';
       }
-          renderGrid();
-          document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
-          showToast('Bienvenue ' + g.nom + ' !');
-      } else {
+      renderGrid();
+      document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
+      showToast('Bienvenue ' + g.nom + ' !');
+    } else {
         document.getElementById('loginError').style.display = 'block';
     }
   } catch(e) { document.getElementById('loginError').style.display = 'block'; }
