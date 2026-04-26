@@ -1044,7 +1044,8 @@ function openAddModal() {
   if (!canEditBalises()) { showToast('Accès refusé'); return; }
   document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
   document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
-  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
+  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   document.getElementById('editTitle').textContent = 'Nouvelle balise';
   document.getElementById('editId').value = '';
   document.getElementById('editCode').value = '';
