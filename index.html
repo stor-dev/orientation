@@ -389,7 +389,10 @@
       <div class="field">
         <label>Poinçon (grille 3×3)</label>
         <div class="poincon-editor">
-          <div><div class="poincon-grid" id="poinconGrid"></div></div>
+          <div>
+            <div class="poincon-grid" id="poinconGrid"></div>
+            <div id="poinconLignesControls" style="display:flex;align-items:center;gap:8px;margin-top:8px;justify-content:center"></div>
+          </div>
           <div class="direction-selector"><p>Orientation</p><div class="dir-grid" id="dirGrid"></div></div>
           <div class="poincon-preview-wrap"><div class="poincon-preview" id="poinconPreview"></div><div class="poincon-preview-label">Aperçu</div></div>
         </div>
@@ -732,7 +735,8 @@ function renderGrid() {
 
   container.innerHTML = filtered.map(b => {
     const sc = getStatusClass(b.statut);
-    const pips = b.poincon ? JSON.parse(b.poincon) : null;
+    let pips = b.poincon ? JSON.parse(b.poincon) : null;
+if (pips) pips = pips.slice(0, (b.lignes || 5) * 3);
     const showPoincon = canSeePoincons() && pips;
     const verifStr = b.derniere_verif ? `Vérifié le ${formatDate(b.derniere_verif)}` : '';
     return `
@@ -778,7 +782,9 @@ function openDetail(id) {
   if (b.notes) html += `<div class="detail-notes">${b.notes}</div>`;
 
   if (canSeePoincons() && b.poincon) {
-    const pips = JSON.parse(b.poincon);
+  const pips = JSON.parse(b.poincon);
+  const nbLignes = b.lignes || 5;
+  pips.splice(nbLignes * 3);
     const dirLabel = {top:'↑ Haut', right:'→ Droite', bottom:'↓ Bas', left:'← Gauche', 'top-left':'↖', 'top-right':'↗', 'bottom-left':'↙', 'bottom-right':'↘'}[b.direction || 'top'] || '';
     html += `
       <div class="poincon-display">
@@ -825,11 +831,23 @@ function initPoinconEditor() {
   grid.innerHTML = '';
   for (let i = 0; i < 15; i++) {
     const btn = document.createElement('button');
-    btn.className = 'pip-btn' + (poinconState[i] ? ' on' : '');
+    const ligne = Math.floor(i / 3);
+    btn.className = 'pip-btn' + (poinconState[i] ? ' on' : '') + (ligne >= editLignes ? ' pip-hidden' : '');
     btn.type = 'button';
+    btn.style.opacity = ligne >= editLignes ? '0.2' : '1';
+    btn.style.pointerEvents = ligne >= editLignes ? 'none' : 'auto';
     btn.onclick = () => { poinconState[i] = !poinconState[i]; btn.classList.toggle('on'); updatePoinconPreview(); };
     grid.appendChild(btn);
   }
+
+  // Boutons +/- lignes
+  const controls = document.getElementById('poinconLignesControls');
+  controls.innerHTML = `
+    <button type="button" onclick="changeLignes(-1)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #bbb;background:white;font-size:1rem;cursor:pointer;line-height:1">−</button>
+    <span id="lignesLabel" style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--forest)">${editLignes} lignes</span>
+    <button type="button" onclick="changeLignes(1)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #bbb;background:white;font-size:1rem;cursor:pointer;line-height:1">+</button>
+  `;
+
   updatePoinconPreview();
 
   const dirs = [
@@ -853,8 +871,24 @@ function initPoinconEditor() {
   });
 }
 
+function changeLignes(delta) {
+  editLignes = Math.min(5, Math.max(3, editLignes + delta));
+  document.getElementById('lignesLabel').textContent = editLignes + ' lignes';
+  const btns = document.getElementById('poinconGrid').querySelectorAll('.pip-btn');
+  btns.forEach((btn, i) => {
+    const ligne = Math.floor(i / 3);
+    btn.style.opacity = ligne >= editLignes ? '0.2' : '1';
+    btn.style.pointerEvents = ligne >= editLignes ? 'none' : 'auto';
+  });
+  updatePoinconPreview();
+}
+
 function updatePoinconPreview() {
-  document.getElementById('poinconPreview').innerHTML = poinconState.map(p => `<div class="pip-prev${p?' on':''}"></div>`).join('');
+  document.getElementById('poinconPreview').innerHTML = poinconState.map((p, i) => {
+    const ligne = Math.floor(i / 3);
+    const hidden = ligne >= editLignes;
+    return `<div class="pip-prev${p && !hidden ? ' on' : ''}" style="opacity:${hidden ? '0.15' : '1'}"></div>`;
+  }).join('');
 }
 
 function openAddModal() {
@@ -868,6 +902,7 @@ function openAddModal() {
   document.getElementById('btnDelete').style.display = 'none';
   poinconState = Array(15).fill(false);
   poinconDir = 'top';
+  editLignes = 5;
   editPhotos = [];
   initPoinconEditor();
   renderPhotoEditor();
@@ -887,6 +922,7 @@ function openEditModal(id) {
   document.querySelectorAll('[name="editStatut"]').forEach(r => { r.checked = r.value === (b.statut || 'unknown'); });
   poinconState = b.poincon ? JSON.parse(b.poincon) : Array(15).fill(false);
   poinconDir = b.direction || 'top';
+  editLignes = b.lignes || 5;
   editPhotos = b.photos ? JSON.parse(b.photos).map(u => ({ url: u, isNew: false })) : [];
   initPoinconEditor();
   renderPhotoEditor();
@@ -938,9 +974,10 @@ async function saveBalise() {
       notes: document.getElementById('editNotes').value.trim(),
       poincon: JSON.stringify(poinconState),
       direction: poinconDir,
+      lignes: editLignes,
       photos: JSON.stringify(finalPhotos),
       ...(statutChanged ? { derniere_verif: new Date().toISOString() } : {})
-    };
+};
     if (id) {
       await api('balises?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), prefer: 'return=minimal' });
     } else {
