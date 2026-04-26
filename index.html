@@ -1049,16 +1049,16 @@ function openAddModal() {
   document.getElementById('editNotes').value = '';
   document.getElementById('sUnk').checked = true;
   document.getElementById('btnDelete').style.display = 'none';
-  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
-  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
-  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   poinconState = Array(15).fill(false);
-  poinconDir = 'top';
-  editLignes = 5;
-  editPhotos = [];
-  initPoinconEditor();
-  renderPhotoEditor();
-  openOverlay('overlayEdit');
+poinconDir = 'top';
+editLignes = 5;
+editPhotos = [];
+initPoinconEditor();
+renderPhotoEditor();
+document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
+document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
+openOverlay('overlayEdit');
 }
 
 function openEditModal(id) {
@@ -1071,17 +1071,17 @@ function openEditModal(id) {
   document.getElementById('editName').value = b.nom || '';
   document.getElementById('editNotes').value = b.notes || '';
   document.getElementById('btnDelete').style.display = isAdmin ? 'inline-block' : 'none';
-  document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
-  document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
-  document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
   document.querySelectorAll('[name="editStatut"]').forEach(r => { r.checked = r.value === (b.statut || 'unknown'); });
-  poinconState = b.poincon ? JSON.parse(b.poincon) : Array(15).fill(false);
-  poinconDir = b.direction || 'top';
-  editLignes = b.lignes || 5;
-  editPhotos = b.photos ? JSON.parse(b.photos).map(u => ({ url: u, isNew: false })) : [];
-  initPoinconEditor();
-  renderPhotoEditor();
-  openOverlay('overlayEdit');
+poinconState = b.poincon ? JSON.parse(b.poincon) : Array(15).fill(false);
+poinconDir = b.direction || 'top';
+editLignes = b.lignes || 5;
+editPhotos = b.photos ? JSON.parse(b.photos).map(u => ({ url: u, isNew: false })) : [];
+initPoinconEditor();
+renderPhotoEditor();
+document.querySelector('.field.photos-section').style.display = canSeePhotos() ? 'block' : 'none';
+document.getElementById('fieldPoincon').style.display = canSeePoincons() ? 'block' : 'none';
+document.getElementById('fieldNom').style.display = canVoirLieu() ? 'block' : 'none';
+openOverlay('overlayEdit');
 }
 
 function renderPhotoEditor() {
