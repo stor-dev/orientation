@@ -824,6 +824,16 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
+function formatRelative(d) {
+  if (!d) return null;
+  const diff = Math.floor((Date.now() - new Date(d)) / 1000);
+  const minutes = Math.floor(diff / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  if (days >= 1) return `il y a ${days}j ${hours % 24}h`;
+  if (hours >= 1) return `il y a ${hours}h ${minutes % 60}min`;
+  return `il y a ${minutes}min`;
+}
 function renderGrid() {
   const search = (document.getElementById('searchInput').value || '').toLowerCase();
   let filtered = balises;
@@ -840,7 +850,7 @@ function renderGrid() {
     let pips = b.poincon ? JSON.parse(b.poincon) : null;
 if (pips) pips = pips.slice(0, (b.lignes || 5) * 3);
     const showPoincon = canSeePoincons() && pips;
-    const verifStr = b.derniere_verif ? `Vérifié le ${formatDate(b.derniere_verif)}` : '';
+    const verifStr = b.derniere_verif ? `Dernière vérification ${formatRelative(b.derniere_verif)}${b.verifie_par ? ' par ' + b.verifie_par : ''}` : '';
     return `
       <div class="card ${sc}" onclick="openDetail(this.dataset.id)" data-id="${b.id}">
         <div class="card-code">${b.code || '?'}</div>
@@ -886,7 +896,7 @@ function openDetail(id) {
     <div class="detail-code">${b.code || '?'}</div>
     ${canVoirLieu() ? `<div class="detail-name">${b.nom || ''}</div>` : ''}
     <div class="detail-status"><div class="dot ${sc}" style="width:12px;height:12px"></div>${getStatusLabel(b.statut)}</div>
-    ${b.derniere_verif ? `<div class="detail-verif">🕐 Vérifié le ${formatDate(b.derniere_verif)}</div>` : ''}
+    ${b.derniere_verif ? `<div class="detail-verif">🕐 Dernière vérification ${formatRelative(b.derniere_verif)}${b.verifie_par ? ' par ' + b.verifie_par : ''} · ${formatDate(b.derniere_verif)}</div>` : ''}
   `;
   if (b.notes) html += `<div class="detail-notes">${b.notes}</div>`;
 
@@ -928,7 +938,7 @@ function openDetail(id) {
 async function confirmEtat(id) {
   if (!canConfirmEtat()) { showToast('Accès refusé'); return; }
   try {
-    await api('balises?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ derniere_verif: new Date().toISOString() }), prefer: 'return=minimal' });
+    await api('balises?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ derniere_verif: new Date().toISOString(), verifie_par: getCurrentUser() }), prefer: 'return=minimal' });
     await loadBalises();
     closeOverlay('overlayDetail');
     showToast('État confirmé !');
@@ -1086,7 +1096,7 @@ async function saveBalise() {
       direction: poinconDir,
       lignes: editLignes,
       photos: JSON.stringify(finalPhotos),
-      ...(statutChanged ? { derniere_verif: new Date().toISOString() } : {})
+      ...(statutChanged ? { derniere_verif: new Date().toISOString(), verifie_par: getCurrentUser() } : {})
 };
 if (id) {
       await api('balises?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), prefer: 'return=minimal' });
