@@ -647,7 +647,7 @@ async function checkLogin() {
     document.getElementById('adminGuestSection').style.display = 'block';
     loadGuests();
     renderGrid();
-    loadAnnonce();
+    document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
     showToast('Connecté en admin !');
     return;
   }
@@ -675,7 +675,7 @@ async function checkLogin() {
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
       renderGrid();
-      loadAnnonce();
+      document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
       showToast('Bienvenue ' + g.nom + ' !');
     } else {
       document.getElementById('loginError').style.display = 'block';
