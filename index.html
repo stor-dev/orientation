@@ -96,7 +96,7 @@
   .dot.unknown { background: var(--unknown); }
   .dot.inexistante { background: var(--inexistante); }
 
-  .card-poincon-mini { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 36px; }
+  .card-poincon-mini { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; width: 36px; height: 60px; }
   .pip-mini { width: 10px; height: 10px; border-radius: 50%; background: #ddd; border: 1.5px solid #bbb; }
   .pip-mini.on { background: var(--forest); border-color: var(--forest); }
 
@@ -124,7 +124,7 @@
   .status-radio:checked + .status-label { border-color: var(--forest); background: var(--mist); font-weight: 700; }
 
   .poincon-editor { background: var(--mist); border-radius: 10px; padding: 16px; display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-  .poincon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .poincon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: fit-content; }
   .pip-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #bbb; background: white; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
   .pip-btn:hover { border-color: var(--fern); background: #e8f5e9; }
   .pip-btn.on { background: var(--forest); border-color: var(--forest); }
@@ -140,7 +140,7 @@
 
   .poincon-preview-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .poincon-preview-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: #888; text-align: center; }
-  .poincon-preview { width: 60px; height: 60px; border: 2px solid var(--forest); border-radius: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 6px; background: white; }
+  .poincon-preview { width: 60px; height: 100px; border: 2px solid var(--forest); border-radius: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 6px; background: white; }
   .pip-prev { border-radius: 50%; background: #ddd; border: 1px solid #bbb; }
   .pip-prev.on { background: var(--forest); border-color: var(--forest); }
 
@@ -160,7 +160,7 @@
 
   .poincon-display { margin-top: 16px; }
   .poincon-display-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--forest); margin-bottom: 8px; }
-  .poincon-large { display: inline-grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; border: 2px solid var(--forest); border-radius: 10px; background: white; }
+  .poincon-large { display: inline-grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; border: 2px solid var(--forest); border-radius: 10px; background: white; width: fit-content; }
   .pip-large { width: 28px; height: 28px; border-radius: 50%; background: #ddd; border: 2px solid #bbb; }
   .pip-large.on { background: var(--forest); border-color: var(--forest); }
   .direction-badge { display: inline-block; margin-left: 12px; padding: 4px 10px; background: var(--forest); color: var(--lime); border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 0.75rem; vertical-align: middle; }
@@ -456,7 +456,7 @@ let guestPerms = {
 let currentFilter = 'all';
 let balises = [];
 let editPhotos = [];
-let poinconState = Array(9).fill(false);
+let poinconState = Array(15).fill(false);
 let poinconDir = 'top';
 
 // ===== API =====
@@ -822,7 +822,7 @@ async function confirmEtat(id) {
 function initPoinconEditor() {
   const grid = document.getElementById('poinconGrid');
   grid.innerHTML = '';
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 15; i++) {
     const btn = document.createElement('button');
     btn.className = 'pip-btn' + (poinconState[i] ? ' on' : '');
     btn.type = 'button';
@@ -865,7 +865,7 @@ function openAddModal() {
   document.getElementById('editNotes').value = '';
   document.getElementById('sUnk').checked = true;
   document.getElementById('btnDelete').style.display = 'none';
-  poinconState = Array(9).fill(false);
+  poinconState = Array(15).fill(false);
   poinconDir = 'top';
   editPhotos = [];
   initPoinconEditor();
@@ -884,7 +884,7 @@ function openEditModal(id) {
   document.getElementById('editNotes').value = b.notes || '';
   document.getElementById('btnDelete').style.display = isAdmin ? 'inline-block' : 'none';
   document.querySelectorAll('[name="editStatut"]').forEach(r => { r.checked = r.value === (b.statut || 'unknown'); });
-  poinconState = b.poincon ? JSON.parse(b.poincon) : Array(9).fill(false);
+  poinconState = b.poincon ? JSON.parse(b.poincon) : Array(15).fill(false);
   poinconDir = b.direction || 'top';
   editPhotos = b.photos ? JSON.parse(b.photos).map(u => ({ url: u, isNew: false })) : [];
   initPoinconEditor();
