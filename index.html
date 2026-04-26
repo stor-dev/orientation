@@ -318,6 +318,7 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
 
 <div class="fab-container">
   <button class="fab fab-credits" onclick="openCredits()" title="Crédits">ℹ️</button>
+  <button class="fab" id="fabHistorique" onclick="openHistorique()" title="Historique" style="background:#e8eaf6;color:#3949ab;display:none;font-size:1rem">📋</button>
   <button class="fab" id="fabSignalements" onclick="openSignalements()" title="Signalements" style="background:#fff3e0;color:#e65100;display:none;font-size:1rem">🚨</button>
   <button class="fab fab-add" id="fabAdd" onclick="openAddModal()">+</button>
 </div>
@@ -474,6 +475,17 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
   </div>
 </div>
   
+<!-- MODAL HISTORIQUE -->
+<div class="overlay" id="overlayHistorique">
+  <div class="modal">
+    <div class="modal-header"><h2>📋 Historique</h2><button class="modal-close" onclick="closeOverlay('overlayHistorique')">×</button></div>
+    <div class="modal-body" id="historiqueBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeOverlay('overlayHistorique')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CRÉDITS -->
 <div class="overlay" id="overlayCredits">
   <div class="modal">
@@ -544,6 +556,27 @@ async function uploadPhoto(file) {
   });
   if (!r.ok) throw new Error('Upload échoué');
   return `${SUPABASE_URL}/storage/v1/object/public/poincons/${name}`;
+}
+
+
+// ===== HISTORIQUE =====
+async function logHistorique(action, entite, entiteId, modifiePar, ancienneValeur, nouvelleValeur) {
+  try {
+    await api('historique', { method: 'POST', body: JSON.stringify({
+      action,
+      entite,
+      entite_id: entiteId,
+      modifie_par: modifiePar,
+      ancienne_valeur: ancienneValeur ? JSON.stringify(ancienneValeur) : null,
+      nouvelle_valeur: nouvelleValeur ? JSON.stringify(nouvelleValeur) : null
+    })});
+  } catch(e) { console.warn('Historique non enregistré:', e.message); }
+}
+
+function getCurrentUser() {
+  if (isAdmin) return 'Admin';
+  if (isGuest) return document.getElementById('btnLogin').textContent.replace('👤 ', '');
+  return 'Anonyme';
 }
 
 // ===== GESTION INVITÉS =====
@@ -685,6 +718,7 @@ function logout() {
   document.getElementById('btnLogout').style.display = 'none';
   document.getElementById('fabAdd').classList.remove('visible');
   document.getElementById('fabSignalements').style.display = 'none';
+  document.getElementById('fabHistorique').style.display = 'none';
   document.getElementById('annonceEditBtn').style.display = 'none';
   renderGrid();
   loadAnnonce();
@@ -708,6 +742,7 @@ async function checkLogin() {
     document.getElementById('btnLogin').textContent = '⚙️ Admin';
     document.getElementById('fabAdd').classList.add('visible');
     document.getElementById('fabSignalements').style.display = 'flex';
+    document.getElementById('fabHistorique').style.display = 'flex';
     document.getElementById('adminGuestSection').style.display = 'block';
     loadGuests();
     renderGrid();
@@ -739,7 +774,10 @@ async function checkLogin() {
       document.getElementById('btnLogin').classList.add('active');
       document.getElementById('btnLogin').textContent = '👤 ' + g.nom;
       if (guestPerms.modifier_balises) document.getElementById('fabAdd').classList.add('visible');
-        if (guestPerms.voir_signalements) document.getElementById('fabSignalements').style.display = 'flex';
+        if (guestPerms.voir_signalements) {
+        document.getElementById('fabSignalements').style.display = 'flex';
+        document.getElementById('fabHistorique').style.display = 'flex';
+      }
           renderGrid();
           document.getElementById('annonceEditBtn').style.display = canModifierAnnonce() ? 'inline-block' : 'none';
           showToast('Bienvenue ' + g.nom + ' !');
@@ -1049,10 +1087,20 @@ async function saveBalise() {
       photos: JSON.stringify(finalPhotos),
       ...(statutChanged ? { derniere_verif: new Date().toISOString() } : {})
 };
-    if (id) {
+if (id) {
       await api('balises?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), prefer: 'return=minimal' });
+      await logHistorique('modification', 'balise', id, getCurrentUser(), {
+        code: oldBalise?.code, statut: oldBalise?.statut, notes: oldBalise?.notes,
+        poincon: oldBalise?.poincon, photos: oldBalise?.photos
+      }, {
+        code: data.code, statut: data.statut, notes: data.notes,
+        poincon: data.poincon, photos: data.photos
+      });
     } else {
-      await api('balises', { method: 'POST', body: JSON.stringify(data) });
+      const created = await api('balises', { method: 'POST', body: JSON.stringify(data) });
+      await logHistorique('creation', 'balise', created?.[0]?.id, getCurrentUser(), null, {
+        code: data.code, statut: data.statut
+      });
     }
     closeOverlay('overlayEdit');
     await loadBalises();
@@ -1066,7 +1114,11 @@ async function deleteBalise() {
   const id = document.getElementById('editId').value;
   if (!id || !confirm('Supprimer cette balise ?')) return;
   try {
+    const baliseASupp = balises.find(b => b.id === id);
     await api('balises?id=eq.' + id, { method: 'DELETE', prefer: 'return=minimal' });
+    await logHistorique('suppression', 'balise', id, getCurrentUser(), {
+      code: baliseASupp?.code, statut: baliseASupp?.statut
+    }, null);
     closeOverlay('overlayEdit');
     await loadBalises();
     showToast('Balise supprimée');
@@ -1105,7 +1157,10 @@ async function saveCredits() {
   if (!canEditCredits()) { showToast('Accès refusé'); return; }
   const contenu = document.getElementById('creditsText').value;
   try {
+    const oldCredits = await api('credits?id=eq.1');
+    const ancienContenu = oldCredits?.[0]?.contenu || '';
     await api('credits?id=eq.1', { method: 'PATCH', body: JSON.stringify({ contenu }), prefer: 'return=minimal' });
+    await logHistorique('modification', 'credits', '1', getCurrentUser(), { contenu: ancienContenu }, { contenu });
     closeOverlay('overlayCredits');
     showToast('Crédits enregistrés !');
   } catch(e) { showToast('Erreur : ' + e.message); }
@@ -1126,7 +1181,10 @@ async function saveAnnonce() {
   if (!canModifierAnnonce()) return;
   const texte = document.getElementById('annonceEditText').value;
   try {
+   const oldAnnonce = await api('annonce?id=eq.1');
+    const ancienTexte = oldAnnonce?.[0]?.contenu || '';
     await api('annonce?id=eq.1', { method: 'PATCH', body: JSON.stringify({ contenu: texte }), prefer: 'return=minimal' });
+    await logHistorique('modification', 'annonce', '1', getCurrentUser(), { contenu: ancienTexte }, { contenu: texte });
     closeOverlay('overlayAnnonce');
     showToast('Annonce mise à jour !');
     loadAnnonce();
@@ -1236,6 +1294,7 @@ async function submitSignal() {
       photo: photoUrl,
       signale_par: qui
     })});
+    await logHistorique('signalement', 'balise', code, getCurrentUser(), null, { etat, message, photo: photoUrl });
     closeOverlay('overlaySignal');
     showToast('Signalement envoyé !');
   } catch(e) { showToast('Erreur : ' + e.message); }
@@ -1264,6 +1323,49 @@ async function openSignalements() {
     }
     openOverlay('overlaySignalements');
   } catch(e) { showToast('Erreur chargement signalements'); }
+}
+
+async function openHistorique() {
+  if (!isAdmin && !(isGuest && guestPerms.voir_signalements)) { showToast('Accès refusé'); return; }
+  try {
+    const rows = await api('historique?order=created_at.desc&limit=100');
+    const body = document.getElementById('historiqueBody');
+    if (!rows || !rows.length) {
+      body.innerHTML = '<p style="text-align:center;color:#aaa;font-family:\'DM Mono\',monospace;padding:30px">Aucun historique</p>';
+    } else {
+      const actionLabel = { creation:'✨ Création', modification:'✏️ Modification', suppression:'🗑️ Suppression', signalement:'🚨 Signalement' };
+      const entiteLabel = { balise:'Balise', credits:'Crédits', annonce:'Annonce' };
+      body.innerHTML = rows.map(h => {
+        let detail = '';
+        const anc = h.ancienne_valeur ? JSON.parse(h.ancienne_valeur) : null;
+        const nouv = h.nouvelle_valeur ? JSON.parse(h.nouvelle_valeur) : null;
+        if (h.entite === 'balise' && anc && nouv) {
+          if (anc.statut !== nouv.statut) detail += `<div style="font-size:0.8rem;color:#555">Statut : <span style="color:#f44336">${getStatusLabel(anc.statut)}</span> → <span style="color:#4caf50">${getStatusLabel(nouv.statut)}</span></div>`;
+          if (anc.notes !== nouv.notes) detail += `<div style="font-size:0.8rem;color:#555">Notes modifiées</div>`;
+          if (anc.poincon !== nouv.poincon) detail += `<div style="font-size:0.8rem;color:#555">Poinçon modifié</div>`;
+          if (anc.photos !== nouv.photos) detail += `<div style="font-size:0.8rem;color:#555">Photos modifiées</div>`;
+        }
+        if (h.entite === 'credits' || h.entite === 'annonce') {
+          if (anc) detail += `<div style="font-size:0.78rem;color:#888;background:#f5f5f5;padding:6px;border-radius:6px;margin-top:4px">Avant : ${(anc.contenu||'').substring(0,80)}${(anc.contenu||'').length>80?'…':''}</div>`;
+          if (nouv) detail += `<div style="font-size:0.78rem;color:#333;background:#e8f5e9;padding:6px;border-radius:6px;margin-top:4px">Après : ${(nouv.contenu||'').substring(0,80)}${(nouv.contenu||'').length>80?'…':''}</div>`;
+        }
+        if (h.entite === 'balise' && h.action === 'signalement' && nouv) {
+          detail += `<div style="font-size:0.8rem;color:#555">État : ${getStatusLabel(nouv.etat)}</div>`;
+          if (nouv.message) detail += `<div style="font-size:0.78rem;color:#888">${nouv.message}</div>`;
+        }
+        return `
+          <div style="border:1.5px solid #e0e0e0;border-radius:10px;padding:12px;margin-bottom:10px;background:white">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-weight:700;font-size:0.85rem">${actionLabel[h.action]||h.action} ${entiteLabel[h.entite]||h.entite}${h.entite==='balise'&&h.entite_id?' #'+(balises.find(b=>b.id===h.entite_id)?.code||h.entite_id.substring(0,6)):''}</span>
+              <span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#aaa">${formatDate(h.created_at)}</span>
+            </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:#888;margin-bottom:4px">Par : ${h.modifie_par||'?'}</div>
+            ${detail}
+          </div>`;
+      }).join('');
+    }
+    openOverlay('overlayHistorique');
+  } catch(e) { showToast('Erreur chargement historique'); }
 }
 
 async function deleteSignalement(id) {
