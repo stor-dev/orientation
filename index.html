@@ -559,8 +559,8 @@ async function api(path, opts = {}) {
     ...opts
   });
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.message || r.statusText); }
-  if (r.status === 204) return null;
-  return r.json();
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
 }
 
 async function uploadPhoto(file) {
