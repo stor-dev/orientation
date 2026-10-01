@@ -290,6 +290,13 @@ header h1 { font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; display: 
   <div class="stat"><div class="stat-num unk" id="statUnk">–</div><div class="stat-label">❓ N/V</div></div>
 </div>
 
+
+<div id="veilleBar" style="background:#e3f2fd;border-bottom:1px solid #bbdefb;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+  <div id="veilleText" style="font-size:0.85rem;color:#0d47a1;font-family:'DM Mono',monospace">Chargement…</div>
+  <button class="btn-secondary" id="btnMaintenir" onclick="maintenirSite()">🔧 Maintenir le site</button>
+</div>
+  
+
 <div id="annonceBar" style="background:#fffde7;border-bottom:1px solid #ffe082;padding:10px 16px;display:flex;flex-direction:column;gap:8px">
   <div id="annonceText" style="font-size:0.85rem;color:#5d4037;font-family:'DM Mono',monospace;white-space:pre-wrap"></div>
   <div style="display:flex;gap:6px;justify-content:flex-start">
@@ -1424,9 +1431,65 @@ async function deleteSignalement(id) {
   } catch(e) { showToast('Erreur : ' + e.message); }
 }
 
+
+// ===== MAINTIEN DU SITE (compte à rebours 7 jours) =====
+const VEILLE_DUREE_MS = 7 * 24 * 60 * 60 * 1000;
+let veilleDerniere = null;
+let veilleTimer = null;
+
+function formatCompteARebours(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const j = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return [j, h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+}
+
+function renderVeille() {
+  const el = document.getElementById('veilleText');
+  if (!veilleDerniere) { el.textContent = 'Mise en veille de l\'API : aucune donnée'; return; }
+  const reste = new Date(veilleDerniere).getTime() + VEILLE_DUREE_MS - Date.now();
+  el.textContent = 'Mise en veille de l\'API dans ' + formatCompteARebours(reste);
+  el.style.color = reste <= 0 ? '#c62828' : '#0d47a1';
+  if (reste <= 0 && veilleTimer) { clearInterval(veilleTimer); veilleTimer = null; }
+}
+
+async function loadVeille() {
+  try {
+    const rows = await api('maintenance?id=eq.1');
+    veilleDerniere = rows && rows[0] ? rows[0].derniere_maintenance : null;
+    if (veilleTimer) clearInterval(veilleTimer);
+    renderVeille();
+    veilleTimer = setInterval(renderVeille, 1000);
+  } catch(e) {
+    document.getElementById('veilleText').textContent = 'Erreur : ' + e.message;
+  }
+}
+
+async function maintenirSite() {
+  const btn = document.getElementById('btnMaintenir');
+  btn.disabled = true;
+  try {
+    const maintenant = new Date().toISOString();
+    await api('maintenance', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates,return=minimal',
+      body: JSON.stringify({ id: 1, derniere_maintenance: maintenant })
+    });
+    veilleDerniere = maintenant;
+    if (veilleTimer) clearInterval(veilleTimer);
+    renderVeille();
+    veilleTimer = setInterval(renderVeille, 1000);
+    showToast('Site maintenu ! Compteur remis à 7 jours');
+  } catch(e) { showToast('Erreur : ' + e.message); }
+  btn.disabled = false;
+}
+
   
 loadBalises();
 loadAnnonce();
+loadVeille();
 setTimeout(() => { document.getElementById('searchInput').value = ''; renderGrid(); }, 500);
 </script>
 </body>
